@@ -8,10 +8,9 @@ PATH = __file__[:-7]
 class Frame:
     def __init__(self):
         self.frame = tk.Tk()
-        self.frame.geometry('955x600')
+        self.frame.geometry('840x525')
         self.frame.title('Battleships')
         self.frame.resizable(False, False)
-        self.cellImages = ['empty', 'ship', 'sunk']
 
         self.images = {
             'empty': tk.PhotoImage(file=f'{PATH}graphics\\cell_empty.png'),
@@ -19,24 +18,39 @@ class Frame:
             'sunk': tk.PhotoImage(file=f'{PATH}graphics\\cell_sunk.png')
         }
 
-        tk.Label(self.frame, text='Your Grid', font='Arial 20').place(x=225, y=25, anchor='center')
-        tk.Label(self.frame, text='Opponent Grid', font='Arial 20').place(x=725, y=25, anchor='center')
+        # text below the grids
+        tk.Label(self.frame, text='Your Grid', font='Arial 20').place(x=212, y=500, anchor='center')
+        tk.Label(self.frame, text='Opponent Grid', font='Arial 20').place(x=628, y=500, anchor='center')
 
-        status_text_var = tk.StringVar()
-        status_text_var.set('Hola')
-        status_text = tk.Label(self.frame, textvariable=status_text_var, font='Arial 20')
-        status_text.place(x=477, y=520, anchor='center')
+        # text at the top in the middle. Tells the user the status of the game
+        self.status_text_var = tk.StringVar()
+        self.status_text_var.set('Hola')
+        tk.Label(self.frame, textvariable=self.status_text_var, font='Arial 20').place(x=420, y=25, anchor='center')
 
-        status_text2_var = tk.StringVar()
-        status_text2_var.set('bingo')
-        status_text2 = tk.Label(self.frame, textvariable=status_text2_var, font='Arial 15')
-        status_text2.place(x=477, y=550, anchor='center')
-
+        self.status_text2_var = tk.StringVar()
+        self.status_text2_var.set('bingo')
+        tk.Label(self.frame, textvariable=self.status_text2_var, font='Arial 12').place(x=420, y=55, anchor='center')
 
     def mainloop(self):
         self.frame.mainloop()
 
-#### BING XILLING
+
+class Game:
+    def __init__(self):
+        self.cellImages = ['empty', 'ship', 'sunk']
+        ''' states:
+        'player_setup': The player is placing their ships.
+        'game_running': The game is running. It is always the players move, as the computer makes its move instantly'''
+        self.state = 'player_setup'
+        self.update_status_text()
+
+    def update_status_text(self):
+        if self.state == 'player_setup':
+            frame.status_text_var.set('Place your ships!')
+            frame.status_text2_var.set('Use the up- and down-arrows to cycle through ship sizes, and use the the '
+                                       'left- and right arrows to change ship direction.')
+
+
 class Grid:
     def __init__(self, view, pos_offset=(0, 0), selection=False):
         # 100 values, a 10x10 grid.
@@ -47,13 +61,14 @@ class Grid:
         self.view = view  # True means you see everything, False means opponent view
         self.selection = selection
         self.pos_offset = pos_offset
-        self.canvas = tk.Canvas(frame.frame, width=450, height=450)
+        self.canvas = tk.Canvas(frame.frame, width=401, height=401)
         self.canvas.place(x=pos_offset[0], y=pos_offset[1])
         self.canvas_grid = []
 
         for i in range(100):
             x, y = self.get_2d_coords(i)
-            self.canvas_grid.append(self.canvas.create_image(45*x, 45*y, image=frame.images['empty'], anchor='nw'))
+            self.canvas_grid.append(self.canvas.create_image(40*x+2, 40*y+2, image=frame.images['empty'], anchor='nw'))
+            print(40*x, 40*y)
         self.update_grid()
 
     def get_2d_coords(self, pos):
@@ -97,7 +112,7 @@ class Grid:
         # update the tk_grid
         if self.view:
             for i, cell in enumerate(self.grid):
-                self.canvas.itemconfig(self.canvas_grid[i], image=frame.images[frame.cellImages[cell]])
+                self.canvas.itemconfig(self.canvas_grid[i], image=frame.images[game.cellImages[cell]])
 
     def print_grid(self):
         ''' Prints the grid to the console. '''
@@ -119,9 +134,10 @@ class Ship:
 
 
 frame = Frame()
+game = Game()
 
-grid1 = Grid(True, (5, 50))
-grid2 = Grid(False, (500, 50))
+grid1 = Grid(True, (10, 75))
+grid2 = Grid(False, (424, 75))
 grid2.generate_ships(5, 4)
 grid1.update_grid()
 
