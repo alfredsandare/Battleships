@@ -44,6 +44,7 @@ class Game:
         self.state = 'player_setup'
         self.update_status_text()
 
+
     def update_status_text(self):
         if self.state == 'player_setup':
             frame.status_text_var.set('Place your ships!')
