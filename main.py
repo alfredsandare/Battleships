@@ -1,4 +1,5 @@
 import tkinter as tk
+import customtkinter as ctk
 import random
 
 PATH = __file__[:-7]
@@ -7,7 +8,7 @@ PATH = __file__[:-7]
 class Frame:
     def __init__(self):
         self.frame = tk.Tk()
-        self.frame.geometry('1000x500')
+        self.frame.geometry('955x600')
         self.frame.title('Battleships')
         self.frame.resizable(False, False)
         self.cellImages = ['empty', 'ship', 'sunk']
@@ -18,10 +19,24 @@ class Frame:
             'sunk': tk.PhotoImage(file=f'{PATH}graphics\\cell_sunk.png')
         }
 
+        tk.Label(self.frame, text='Your Grid', font='Arial 20').place(x=225, y=25, anchor='center')
+        tk.Label(self.frame, text='Opponent Grid', font='Arial 20').place(x=725, y=25, anchor='center')
+
+        status_text_var = tk.StringVar()
+        status_text_var.set('Hola')
+        status_text = tk.Label(self.frame, textvariable=status_text_var, font='Arial 20')
+        status_text.place(x=477, y=520, anchor='center')
+
+        status_text2_var = tk.StringVar()
+        status_text2_var.set('bingo')
+        status_text2 = tk.Label(self.frame, textvariable=status_text2_var, font='Arial 15')
+        status_text2.place(x=477, y=550, anchor='center')
+
+
     def mainloop(self):
         self.frame.mainloop()
 
-
+#### BING XILLING
 class Grid:
     def __init__(self, view, pos_offset=(0, 0), selection=False):
         # 100 values, a 10x10 grid.
@@ -80,8 +95,9 @@ class Grid:
                     self.grid[ship.anchor+10*i] = grid_data[cell]
 
         # update the tk_grid
-        for i, cell in enumerate(self.grid):
-            self.canvas.itemconfig(self.canvas_grid[i], image=frame.images[frame.cellImages[cell]])
+        if self.view:
+            for i, cell in enumerate(self.grid):
+                self.canvas.itemconfig(self.canvas_grid[i], image=frame.images[frame.cellImages[cell]])
 
     def print_grid(self):
         ''' Prints the grid to the console. '''
@@ -104,9 +120,9 @@ class Ship:
 
 frame = Frame()
 
-grid1 = Grid(True, (5, 5))
-grid2 = Grid(False, (500, 5))
-grid1.generate_ships(5, 4)
+grid1 = Grid(True, (5, 50))
+grid2 = Grid(False, (500, 50))
+grid2.generate_ships(5, 4)
 grid1.update_grid()
 
 frame.mainloop()
