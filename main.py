@@ -172,6 +172,7 @@ def get_2d_coords(pos):
     x = pos
     return x, y
 
+
 def get_linear_coords(pos):
     ''' Returns linear coords from given 2d coords '''
     return 10 * int(pos[1]) + int(pos[0])
