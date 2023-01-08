@@ -1,6 +1,7 @@
 import tkinter as tk
 import customtkinter as ctk
 import random
+import time
 
 PATH = __file__[:-7]
 
@@ -15,7 +16,8 @@ class Frame:
         self.images = {
             'empty': tk.PhotoImage(file=f'{PATH}graphics\\cell_empty.png'),
             'ship': tk.PhotoImage(file=f'{PATH}graphics\\cell_ship.png'),
-            'sunk': tk.PhotoImage(file=f'{PATH}graphics\\cell_sunk.png')
+            'sunk': tk.PhotoImage(file=f'{PATH}graphics\\cell_sunk.png'),
+            '2_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\2_ship_horizontal.png')
         }
 
         # text below the grids
@@ -43,13 +45,26 @@ class Game:
         'game_running': The game is running. It is always the players move, as the computer makes its move instantly'''
         self.state = 'player_setup'
         self.update_status_text()
-
+        self.temporary_ship_anchor = None  # used for hovering while placing ships
 
     def update_status_text(self):
         if self.state == 'player_setup':
             frame.status_text_var.set('Place your ships!')
             frame.status_text2_var.set('Use the up- and down-arrows to cycle through ship sizes, and use the the '
                                        'left- and right arrows to change ship direction.')
+
+    def mouse_motion(self, x, y):
+        grid_pos = get_linear_coords([x/40, y/40])
+        if self.state == 'player_setup':
+            if grid_pos != self.temporary_ship_anchor:
+                print('första')
+                if grid1.add_ship(True, 2, grid_pos):
+                    #print(self.temporary_ship_anchor)
+                    grid1.delete_ship(self.temporary_ship_anchor)
+                    #print(self.temporary_ship_anchor, grid_pos)
+                    #print('första', [ship.anchor for ship in grid1.ships])
+                    grid1.update_grid()
+                    self.temporary_ship_anchor = grid_pos
 
 
 class Grid:
@@ -67,41 +82,55 @@ class Grid:
         self.canvas_grid = []
 
         for i in range(100):
-            x, y = self.get_2d_coords(i)
+            x, y = get_2d_coords(i)
             self.canvas_grid.append(self.canvas.create_image(40*x+2, 40*y+2, image=frame.images['empty'], anchor='nw'))
-            print(40*x, 40*y)
         self.update_grid()
 
-    def get_2d_coords(self, pos):
-        ''' Returns x,y coords from linear coords input. '''
-        y = 0
-        while pos > 9:
-            pos -= 10
-            y += 1
-        x = pos
-        return x, y
+        self.canvas.bind('<Motion>', self.mouse_motion)
+
+    def mouse_motion(self, event):
+        game.mouse_motion(event.x, event.y)
 
     def generate_ships(self, amount, max_len):
         for i in range(amount):
-            direction = bool(random.randint(0, 1))
-            length = 3
-
             done = False
-            pos = random.randint(0, 99)
             while not done:
+                direction = bool(random.randint(0, 1))
+                length = 3
                 pos = random.randint(0, 99)
-                x, y = self.get_2d_coords(pos)
-                if direction:  # horizontal
-                    if x + length < 9 and all([self.grid[pos+j] == 0 for j in range(length)]):
-                        done = True
-                else:  # vertical
-                    if y + length < 9 and all([self.grid[pos+10*j] == 0 for j in range(length)]):
-                        done = True
-            self.ships.append(Ship(direction, length, pos))
+                done = self.add_ship(direction, length, pos)
             self.update_grid()
+
+    def add_ship(self, direction, length, pos):
+        success = False
+        x, y = get_2d_coords(pos)
+        if direction:  # horizontal
+            if x + length < 9 and all([self.grid[pos + j] == 0 for j in range(length)]):
+                success = True
+        else:  # vertical
+            if y + length < 9 and all([self.grid[pos + 10 * j] == 0 for j in range(length)]):
+                success = True
+        if success:
+            self.ships.append(Ship(direction, length, pos))
+        return success
+
+    def delete_ship(self, pos):
+        ship_id = None
+        for i, ship in enumerate(self.ships):
+            if ship.anchor == pos:
+                ship_id = i
+                break
+        if ship_id is not None:
+            self.ships.pop(ship_id)
+        return ship_id is not None
 
     def update_grid(self):
         ''' Updates the grid data based on the ships and updates the tk_grid. '''
+
+        # clear the grid
+        for i in range(len(self.grid)):
+            self.grid[i] = 0
+
         grid_data = [2, 1]
         for ship in self.ships:
             for i, cell in enumerate(ship.cells):
@@ -134,11 +163,25 @@ class Ship:
         return [self.anchor+10*i for i in range(len(self.cells))]
 
 
+def get_2d_coords(pos):
+    ''' Returns x,y coords from linear coords input. '''
+    y = 0
+    while pos > 9:
+        pos -= 10
+        y += 1
+    x = pos
+    return x, y
+
+def get_linear_coords(pos):
+    ''' Returns linear coords from given 2d coords '''
+    return 10 * int(pos[1]) + int(pos[0])
+
+
 frame = Frame()
 game = Game()
 
 grid1 = Grid(True, (10, 75))
-grid2 = Grid(False, (424, 75))
+grid2 = Grid(True, (424, 75))
 grid2.generate_ships(5, 4)
 grid1.update_grid()
 
