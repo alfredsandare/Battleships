@@ -45,7 +45,7 @@ class Game:
         'game_running': The game is running. It is always the players move, as the computer makes its move instantly'''
         self.state = 'player_setup'
         self.update_status_text()
-        self.temporary_ship_anchor = None  # used for hovering while placing ships
+        self.temporary_ship = None  # used for hovering while placing ships
 
     def update_status_text(self):
         if self.state == 'player_setup':
@@ -54,17 +54,20 @@ class Game:
                                        'left- and right arrows to change ship direction.')
 
     def mouse_motion(self, x, y):
-        grid_pos = get_linear_coords([x/40, y/40])
+        print('första')
+        grid1.print_grid()
+        mouse_grid_pos = get_linear_coords([x/40, y/40])
         if self.state == 'player_setup':
+            '''
             if grid_pos != self.temporary_ship_anchor:
-                print('första')
-                if grid1.add_ship(True, 2, grid_pos):
-                    #print(self.temporary_ship_anchor)
+                if grid1.add_ship(True, 2, grid_pos, limit=false):
                     grid1.delete_ship(self.temporary_ship_anchor)
-                    #print(self.temporary_ship_anchor, grid_pos)
-                    #print('första', [ship.anchor for ship in grid1.ships])
                     grid1.update_grid()
                     self.temporary_ship_anchor = grid_pos
+            '''
+            if grid1.check_clear_space_for_ship(True, 3, mouse_grid_pos):
+                self.temporary_ship = Ship(True, 3, mouse_grid_pos)
+            grid1.update_grid()
 
 
 class Grid:
@@ -101,7 +104,9 @@ class Grid:
                 done = self.add_ship(direction, length, pos)
             self.update_grid()
 
-    def add_ship(self, direction, length, pos):
+    def check_clear_space_for_ship(self, direction, length, pos):
+        print('andra')
+        self.print_grid()
         success = False
         x, y = get_2d_coords(pos)
         if direction:  # horizontal
@@ -110,6 +115,10 @@ class Grid:
         else:  # vertical
             if y + length < 9 and all([self.grid[pos + 10 * j] == 0 for j in range(length)]):
                 success = True
+        return success
+
+    def add_ship(self, direction, length, pos):
+        success = self.check_clear_space_for_ship(direction, length, pos)
         if success:
             self.ships.append(Ship(direction, length, pos))
         return success
@@ -138,11 +147,27 @@ class Grid:
                     self.grid[ship.anchor+i] = grid_data[cell]
                 else:  # direction is vertical
                     self.grid[ship.anchor+10*i] = grid_data[cell]
+        '''
+        if game.temporary_ship is not None:  # if there is a temporary ship
+            for i in range(len(game.temporary_ship.cells)):
+                if game.temporary_ship.direction:  # direction is horizontal
+                    self.grid[game.temporary_ship.anchor+i] = 1
+                else:  # direction is vertical
+                    self.grid[game.temporary_ship.anchor+10*i] = 1
+        '''
 
         # update the tk_grid
         if self.view:
             for i, cell in enumerate(self.grid):
                 self.canvas.itemconfig(self.canvas_grid[i], image=frame.images[game.cellImages[cell]])
+        if game.temporary_ship is not None:
+            for i in range(len(game.temporary_ship.cells)):
+                if game.temporary_ship.direction:  # direction is horizontal
+                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+i], image=frame.images[game.cellImages[cell]])
+                else:  # direction is vertical
+                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+10*i], image=frame.images[game.cellImages[cell]])
+        else:
+            pass
 
     def print_grid(self):
         ''' Prints the grid to the console. '''
