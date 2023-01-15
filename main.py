@@ -54,8 +54,8 @@ class Game:
                                        'left- and right arrows to change ship direction.')
 
     def mouse_motion(self, x, y):
-        print('första')
-        grid1.print_grid()
+        #print('första')
+        #grid1.print_grid()
         mouse_grid_pos = get_linear_coords([x/40, y/40])
         if self.state == 'player_setup':
             '''
@@ -105,16 +105,17 @@ class Grid:
             self.update_grid()
 
     def check_clear_space_for_ship(self, direction, length, pos):
-        print('andra')
-        self.print_grid()
+        #print('andra')
+        #self.print_grid()
         success = False
         x, y = get_2d_coords(pos)
         if direction:  # horizontal
-            if x + length < 9 and all([self.grid[pos + j] == 0 for j in range(length)]):
+            if x + length < 11 and all([self.grid[pos + j] == 0 for j in range(length)]):
                 success = True
         else:  # vertical
             if y + length < 9 and all([self.grid[pos + 10 * j] == 0 for j in range(length)]):
                 success = True
+        print(success, x + length < 11, x, length)
         return success
 
     def add_ship(self, direction, length, pos):
@@ -161,11 +162,12 @@ class Grid:
             for i, cell in enumerate(self.grid):
                 self.canvas.itemconfig(self.canvas_grid[i], image=frame.images[game.cellImages[cell]])
         if game.temporary_ship is not None:
+
             for i in range(len(game.temporary_ship.cells)):
                 if game.temporary_ship.direction:  # direction is horizontal
-                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+i], image=frame.images[game.cellImages[cell]])
+                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+i], image=frame.images[game.cellImages[1]])
                 else:  # direction is vertical
-                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+10*i], image=frame.images[game.cellImages[cell]])
+                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+10*i], image=frame.images[game.cellImages[1]])
         else:
             pass
 
