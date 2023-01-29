@@ -68,7 +68,9 @@ class Game:
                     self.temporary_ship_anchor = grid_pos
             '''
             if grid1.check_clear_space_for_ship(True, 3, mouse_grid_pos):
-                self.temporary_ship = Ship(True, 3, mouse_grid_pos)
+                #self.temporary_ship = Ship(True, 3, mouse_grid_pos)
+                grid1.delete_ship(mouse_grid_pos)
+                grid1.add_ship(True, 3, mouse_grid_pos)
             grid1.update_grid()
 
 
@@ -118,7 +120,7 @@ class Grid:
         else:  # vertical
             if y + length < 9 and all([self.grid[pos + 10 * j] == 0 for j in range(length)]):
                 success = True
-        print(success, x + length < 11, x, length)
+        #print(success, x + length < 11, x, length)
         return success
 
     def add_ship(self, direction, length, pos):
@@ -127,7 +129,7 @@ class Grid:
             self.ships.append(Ship(direction, length, pos))
             x, y = get_2d_coords(pos)
             ship_image = frame.images[f'{length}_ship_{"horizontal" if direction else "vertical"}']
-            self.tk_ships[id(self.ships[-1])] = self.canvas.create_image(x*40+7, y*40+7, image=ship_image, anchor='nw')
+            self.tk_ships[pos] = self.canvas.create_image(x*40+7, y*40+7, image=ship_image, anchor='nw')
         return success
 
     def delete_ship(self, pos):
@@ -138,6 +140,8 @@ class Grid:
                 break
         if ship_id is not None:
             self.ships.pop(ship_id)
+            print(pos, self.tk_ships)
+            del self.tk_ships[pos]
         return ship_id is not None
 
     def update_grid(self):
