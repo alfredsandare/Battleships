@@ -76,6 +76,7 @@ class Grid:
         # Cell state 0 means no empty, state 1 means part of ship, state 2 means sunken part of ship
         self.grid = [0 for n in range(100)]
         self.ships = []
+        self.tk_ships = {}
 
         self.view = view  # True means you see everything, False means opponent view
         self.selection = selection
@@ -122,6 +123,7 @@ class Grid:
         success = self.check_clear_space_for_ship(direction, length, pos)
         if success:
             self.ships.append(Ship(direction, length, pos))
+            self.tk_ships[id(self.ships[-1])] = self.canvas
         return success
 
     def delete_ship(self, pos):
@@ -141,6 +143,7 @@ class Grid:
         for i in range(len(self.grid)):
             self.grid[i] = 0
 
+        '''
         grid_data = [2, 1]
         for ship in self.ships:
             for i, cell in enumerate(ship.cells):
@@ -148,6 +151,15 @@ class Grid:
                     self.grid[ship.anchor+i] = grid_data[cell]
                 else:  # direction is vertical
                     self.grid[ship.anchor+10*i] = grid_data[cell]
+        '''
+
+
+        #for ship in self.ships:
+        #    for i, cell in enumerate(ship.cells):
+
+
+
+
         '''
         if game.temporary_ship is not None:  # if there is a temporary ship
             for i in range(len(game.temporary_ship.cells)):
@@ -159,17 +171,21 @@ class Grid:
 
         # update the tk_grid
         if self.view:
+            '''
             for i, cell in enumerate(self.grid):
                 self.canvas.itemconfig(self.canvas_grid[i], image=frame.images[game.cellImages[cell]])
-        if game.temporary_ship is not None:
 
-            for i in range(len(game.temporary_ship.cells)):
-                if game.temporary_ship.direction:  # direction is horizontal
-                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+i], image=frame.images[game.cellImages[1]])
-                else:  # direction is vertical
-                    self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+10*i], image=frame.images[game.cellImages[1]])
-        else:
-            pass
+            if game.temporary_ship is not None:
+                for i in range(len(game.temporary_ship.cells)):
+                    if game.temporary_ship.direction:  # direction is horizontal
+                        self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+i], image=frame.images[game.cellImages[1]])
+                    else:  # direction is vertical
+                        self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+10*i], image=frame.images[game.cellImages[1]])
+            '''
+
+            for ship in self.ships:
+
+
 
     def print_grid(self):
         ''' Prints the grid to the console. '''
