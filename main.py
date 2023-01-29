@@ -17,7 +17,9 @@ class Frame:
             'empty': tk.PhotoImage(file=f'{PATH}graphics\\cell_empty.png'),
             'ship': tk.PhotoImage(file=f'{PATH}graphics\\cell_ship.png'),
             'sunk': tk.PhotoImage(file=f'{PATH}graphics\\cell_sunk.png'),
-            '2_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\2_ship_horizontal.png')
+            '2_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\2_ship_horizontal.png'),
+            '3_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\3_ship_horizontal.png'),
+            '3_ship_vertical': tk.PhotoImage(file=f'{PATH}graphics\\3_ship_vertical.png')
         }
 
         # text below the grids
@@ -123,7 +125,9 @@ class Grid:
         success = self.check_clear_space_for_ship(direction, length, pos)
         if success:
             self.ships.append(Ship(direction, length, pos))
-            self.tk_ships[id(self.ships[-1])] = self.canvas
+            x, y = get_2d_coords(pos)
+            ship_image = frame.images[f'{length}_ship_{"horizontal" if direction else "vertical"}']
+            self.tk_ships[id(self.ships[-1])] = self.canvas.create_image(x*40+7, y*40+7, image=ship_image, anchor='nw')
         return success
 
     def delete_ship(self, pos):
@@ -183,8 +187,9 @@ class Grid:
                         self.canvas.itemconfig(self.canvas_grid[game.temporary_ship.anchor+10*i], image=frame.images[game.cellImages[1]])
             '''
 
-            for ship in self.ships:
-
+            #for ship in self.ships:
+            #    if len(ship.cells) == 3:
+            pass
 
 
     def print_grid(self):
