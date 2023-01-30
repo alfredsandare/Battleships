@@ -47,33 +47,13 @@ class Game:
         'game_running': The game is running. It is always the players move, as the computer makes its move instantly'''
         self.state = 'player_setup'
         self.update_status_text()
-        #self.temporary_ship = None  # used for hovering while placing ships
-        self.temporary_ship_anchor = None
+        self.temporary_ship_anchor = None  # used for hovering while placing ships
 
     def update_status_text(self):
         if self.state == 'player_setup':
             frame.status_text_var.set('Place your ships!')
             frame.status_text2_var.set('Use the up- and down-arrows to cycle through ship sizes, and use the the '
                                        'left- and right arrows to change ship direction.')
-
-    def mouse_motion(self, x, y):
-        #print('första')
-        #grid1.print_grid()
-        mouse_grid_pos = get_linear_coords([x/40, y/40])
-        if self.state == 'player_setup':
-            '''
-            if grid_pos != self.temporary_ship_anchor:
-                if grid1.add_ship(True, 2, grid_pos, limit=false):
-                    grid1.delete_ship(self.temporary_ship_anchor)
-                    grid1.update_grid()
-                    self.temporary_ship_anchor = grid_pos
-            '''
-            if grid1.check_clear_space_for_ship(True, 3, mouse_grid_pos):
-                #self.temporary_ship = Ship(True, 3, mouse_grid_pos)
-                grid1.delete_ship(self.temporary_ship_anchor)
-                self.temporary_ship_anchor = mouse_grid_pos
-                grid1.add_ship(True, 3, self.temporary_ship_anchor)
-            grid1.update_grid()
 
 
 class Grid:
@@ -97,9 +77,22 @@ class Grid:
         self.update_grid()
 
         self.canvas.bind('<Motion>', self.mouse_motion)
+        keys = ['<Up>', '<Down>', '<Right>', '<Left>']
+        for key in keys:
+            self.canvas.bind(key, self.key_press)
 
     def mouse_motion(self, event):
-        game.mouse_motion(event.x, event.y)
+        x, y = event.x, event.y
+        mouse_grid_pos = get_linear_coords([x/40, y/40])
+        if game.state == 'player_setup':
+            grid1.delete_ship(game.temporary_ship_anchor)
+            grid1.update_grid()
+            game.temporary_ship_anchor = mouse_grid_pos
+            grid1.add_ship(True, 3, game.temporary_ship_anchor)
+            grid1.update_grid()
+
+    def key_press(self, event):
+        print(event)
 
     def generate_ships(self, amount, max_len):
         for i in range(amount):
