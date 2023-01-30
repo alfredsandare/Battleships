@@ -19,6 +19,8 @@ class Frame:
             'sunk': tk.PhotoImage(file=f'{PATH}graphics\\cell_sunk.png'),
             '2_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\2_ship_horizontal.png'),
             '3_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\3_ship_horizontal.png'),
+            '4_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\4_ship_horizontal.png'),
+            '5_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\5_ship_horizontal.png'),
             '3_ship_vertical': tk.PhotoImage(file=f'{PATH}graphics\\3_ship_vertical.png')
         }
 
@@ -48,6 +50,10 @@ class Game:
         self.state = 'player_setup'
         self.update_status_text()
         self.temporary_ship_anchor = None  # used for hovering while placing ships
+        self.player_setup_ship_direction = True
+        self.player_setup_ship_length = 3
+        #self.player_setup_ships_left = [2, 2, 3, 3, 4, 5]
+        self.player_setup_ships_left = [3, 4, 5]
 
     def update_status_text(self):
         if self.state == 'player_setup':
@@ -76,23 +82,48 @@ class Grid:
             self.canvas_grid.append(self.canvas.create_image(40*x+2, 40*y+2, image=frame.images['empty'], anchor='nw'))
         self.update_grid()
 
-        self.canvas.bind('<Motion>', self.mouse_motion)
-        keys = ['<Up>', '<Down>', '<Right>', '<Left>']
-        for key in keys:
-            self.canvas.bind(key, self.key_press)
+    def update_temporary_ship(self, mouse_grid_pos=None):
+        ''' Updates the temporary ship's properties. '''
+        ''' The argument mouse_grid_pos specifies which cell the mouse cursor is currently on. 
+        If not specified, it doesn't update the cursor position and just uses the previous one. '''
+        self.delete_ship(game.temporary_ship_anchor)
+        self.update_grid()
+        if mouse_grid_pos is not None:
+            game.temporary_ship_anchor = mouse_grid_pos
+        self.add_ship(game.player_setup_ship_direction, game.player_setup_ship_length, game.temporary_ship_anchor)
+        self.update_grid()
 
     def mouse_motion(self, event):
         x, y = event.x, event.y
         mouse_grid_pos = get_linear_coords([x/40, y/40])
         if game.state == 'player_setup':
-            grid1.delete_ship(game.temporary_ship_anchor)
-            grid1.update_grid()
-            game.temporary_ship_anchor = mouse_grid_pos
-            grid1.add_ship(True, 3, game.temporary_ship_anchor)
-            grid1.update_grid()
+            self.update_temporary_ship(mouse_grid_pos=mouse_grid_pos)
 
     def key_press(self, event):
-        print(event)
+        key = event.keysym
+        if game.state == 'player_setup':
+
+            if key == 'Up' and game.player_setup_ship_length < 5:
+                target_length = game.player_setup_ship_length + 1
+                while target_length < 6:
+                    if target_length in game.player_setup_ships_left:
+                        break
+                    target_length += 1
+                game.player_setup_ship_length = target_length
+                self.update_temporary_ship()
+
+            elif key == 'Down' and game.player_setup_ship_length > 2:
+                target_length = game.player_setup_ship_length - 1
+                while target_length > 1:
+                    if target_length in game.player_setup_ships_left:
+                        break
+                    target_length -= 1
+                game.player_setup_ship_length = target_length
+                self.update_temporary_ship()
+
+            elif key == 'Right' or key == 'Left':
+                game.player_setup_ship_direction = not game.player_setup_ship_direction
+                self.update_temporary_ship()
 
     def generate_ships(self, amount, max_len):
         for i in range(amount):
@@ -186,6 +217,8 @@ frame = Frame()
 game = Game()
 
 grid1 = Grid(True, (10, 75))
+grid1.canvas.bind('<Motion>', grid1.mouse_motion)
+grid1.canvas.bind_all('<KeyPress>', grid1.key_press)
 grid2 = Grid(True, (424, 75))
 grid2.generate_ships(5, 4)
 grid1.update_grid()
