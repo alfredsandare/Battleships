@@ -3,6 +3,8 @@ import customtkinter as ctk
 import random
 import time
 
+import setuptools
+
 PATH = __file__[:-7]
 
 
@@ -21,7 +23,10 @@ class Frame:
             '3_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\3_ship_horizontal.png'),
             '4_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\4_ship_horizontal.png'),
             '5_ship_horizontal': tk.PhotoImage(file=f'{PATH}graphics\\5_ship_horizontal.png'),
-            '3_ship_vertical': tk.PhotoImage(file=f'{PATH}graphics\\3_ship_vertical.png')
+            '2_ship_vertical': tk.PhotoImage(file=f'{PATH}graphics\\2_ship_vertical.png'),
+            '3_ship_vertical': tk.PhotoImage(file=f'{PATH}graphics\\3_ship_vertical.png'),
+            '4_ship_vertical': tk.PhotoImage(file=f'{PATH}graphics\\4_ship_vertical.png'),
+            '5_ship_vertical': tk.PhotoImage(file=f'{PATH}graphics\\5_ship_vertical.png')
         }
 
         # text below the grids
@@ -52,8 +57,7 @@ class Game:
         self.temporary_ship_anchor = None  # used for hovering while placing ships
         self.player_setup_ship_direction = True
         self.player_setup_ship_length = 3
-        #self.player_setup_ships_left = [2, 2, 3, 3, 4, 5]
-        self.player_setup_ships_left = [3, 4, 5]
+        self.player_setup_ships_left = [2, 2, 3, 3, 4, 5]
 
     def update_status_text(self):
         if self.state == 'player_setup':
@@ -99,11 +103,17 @@ class Grid:
         if game.state == 'player_setup':
             self.update_temporary_ship(mouse_grid_pos=mouse_grid_pos)
 
+    def mouse_click(self, event):
+        if game.state == 'player_setup':
+            game.temporary_ship_anchor = None
+            self.update_grid()
+
     def key_press(self, event):
         key = event.keysym
         if game.state == 'player_setup':
 
-            if key == 'Up' and game.player_setup_ship_length < 5:
+            if key == 'Up' and game.player_setup_ship_length < 5 and \
+                    game.player_setup_ship_length != game.player_setup_ships_left[-1]: # so that you can't go up while you're on the largest ship
                 target_length = game.player_setup_ship_length + 1
                 while target_length < 6:
                     if target_length in game.player_setup_ships_left:
@@ -112,7 +122,8 @@ class Grid:
                 game.player_setup_ship_length = target_length
                 self.update_temporary_ship()
 
-            elif key == 'Down' and game.player_setup_ship_length > 2:
+            elif key == 'Down' and game.player_setup_ship_length > 2 and \
+                    game.player_setup_ship_length != game.player_setup_ships_left[0]:  # so that you can't go down while you're on the smallest ship
                 target_length = game.player_setup_ship_length - 1
                 while target_length > 1:
                     if target_length in game.player_setup_ships_left:
@@ -142,7 +153,7 @@ class Grid:
             if x + length < 11 and all([self.grid[pos + j] == 0 for j in range(length)]):
                 success = True
         else:  # vertical
-            if y + length < 9 and all([self.grid[pos + 10 * j] == 0 for j in range(length)]):
+            if y + length < 11 and all([self.grid[pos + 10 * j] == 0 for j in range(length)]):
                 success = True
         return success
 
@@ -217,8 +228,10 @@ frame = Frame()
 game = Game()
 
 grid1 = Grid(True, (10, 75))
+grid1.add_ship(True, 3, 50)
 grid1.canvas.bind('<Motion>', grid1.mouse_motion)
 grid1.canvas.bind_all('<KeyPress>', grid1.key_press)
+grid1.canvas.bind_all('<Button-1>', grid1.mouse_click)
 grid2 = Grid(True, (424, 75))
 grid2.generate_ships(5, 4)
 grid1.update_grid()
