@@ -92,9 +92,12 @@ class Grid:
         If not specified, it doesn't update the cursor position and just uses the previous one. '''
         self.delete_ship(game.temporary_ship_anchor)
         self.update_grid()
+        previous_temporary_ship_anchor = game.temporary_ship_anchor
         if mouse_grid_pos is not None:
             game.temporary_ship_anchor = mouse_grid_pos
-        self.add_ship(game.player_setup_ship_direction, game.player_setup_ship_length, game.temporary_ship_anchor)
+        success = self.add_ship(game.player_setup_ship_direction, game.player_setup_ship_length, game.temporary_ship_anchor)
+        if not success:
+            game.temporary_ship_anchor = previous_temporary_ship_anchor
         self.update_grid()
 
     def mouse_motion(self, event):
@@ -106,6 +109,12 @@ class Grid:
     def mouse_click(self, event):
         if game.state == 'player_setup':
             game.temporary_ship_anchor = None
+            game.player_setup_ships_left.remove(game.player_setup_ship_length)  # remove the ship from the pool
+            if len(game.player_setup_ships_left) > 0:  # still in player setup phase
+                if game.player_setup_ship_length not in game.player_setup_ships_left:  # if the len is no longer avail.
+                    game.player_setup_ship_length = game.player_setup_ships_left[0]
+            else:  # switch to game phase
+                game.state = 'main'
             self.update_grid()
 
     def key_press(self, event):
@@ -136,12 +145,14 @@ class Grid:
                 game.player_setup_ship_direction = not game.player_setup_ship_direction
                 self.update_temporary_ship()
 
-    def generate_ships(self, amount, max_len):
+    def generate_ships(self, amount):
         for i in range(amount):
             done = False
             while not done:
                 direction = bool(random.randint(0, 1))
-                length = 3
+                length = random.randint(2, 5)
+                while length not in game.player_setup_ships_left:
+                    length = random.randint(2, 5)
                 pos = random.randint(0, 99)
                 done = self.add_ship(direction, length, pos)
             self.update_grid()
@@ -228,12 +239,12 @@ frame = Frame()
 game = Game()
 
 grid1 = Grid(True, (10, 75))
-grid1.add_ship(True, 3, 50)
 grid1.canvas.bind('<Motion>', grid1.mouse_motion)
 grid1.canvas.bind_all('<KeyPress>', grid1.key_press)
 grid1.canvas.bind_all('<Button-1>', grid1.mouse_click)
-grid2 = Grid(True, (424, 75))
-grid2.generate_ships(5, 4)
 grid1.update_grid()
+
+grid2 = Grid(True, (424, 75))
+grid2.generate_ships(6)
 
 frame.mainloop()
