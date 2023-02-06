@@ -146,15 +146,17 @@ class Grid:
                 self.update_temporary_ship()
 
     def generate_ships(self, amount):
+        ships_left = [2, 2, 3, 3, 4, 5]
         for i in range(amount):
             done = False
             while not done:
                 direction = bool(random.randint(0, 1))
                 length = random.randint(2, 5)
-                while length not in game.player_setup_ships_left:
+                while length not in ships_left:
                     length = random.randint(2, 5)
                 pos = random.randint(0, 99)
                 done = self.add_ship(direction, length, pos)
+            ships_left.remove(length)
             self.update_grid()
 
     def check_clear_space_for_ship(self, direction, length, pos):
